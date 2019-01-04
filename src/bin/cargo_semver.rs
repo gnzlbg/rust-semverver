@@ -180,14 +180,20 @@ fn run(config: &cargo::Config, matches: &getopts::Matches, explain: bool) -> Res
              extern crate new;"
         ))?;
     } else {
-        return Err(failure::err_msg("could not pipe to rustc (wtf?)".to_owned()).into());
+        return Err(failure::err_msg(
+            "could not pipe to rustc (wtf?)".to_owned(),
+        ));
     }
 
-    child
+    let status = child
         .wait()
         .map_err(|e| failure::err_msg(format!("failed to wait for rustc: {}", e)))?;
 
-    Ok(())
+    if status.success() {
+        Ok(())
+    } else {
+        cli::exit_with_error(&config, failure::err_msg("breaking changes detected"))
+    }
 }
 
 /// CLI utils
@@ -434,7 +440,6 @@ pub fn find_on_crates_io(crate_name: &str) -> Result<crates_io::Crate> {
                 "failed to retrieve search results from the registry: {}",
                 e
             ))
-            .into()
         })
         .and_then(|(mut crates, _)| {
             crates
@@ -442,7 +447,6 @@ pub fn find_on_crates_io(crate_name: &str) -> Result<crates_io::Crate> {
                 .find(|krate| krate.name == crate_name)
                 .ok_or_else(|| {
                     failure::err_msg(format!("failed to find a matching crate `{}`", crate_name))
-                        .into()
                 })
         })
 }

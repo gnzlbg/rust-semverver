@@ -6,7 +6,7 @@ mod full {
         process::{Command, Stdio},
     };
 
-    fn test_full(crate_name: &str, old_version: &str, new_version: &str) {
+    fn test_full(crate_name: &str, old_version: &str, new_version: &str, cargo_result: bool) {
         let mut success = true;
 
         let prog = format!(
@@ -90,7 +90,7 @@ mod full {
         let old_version = format!("{}:{}", crate_name, old_version);
         let new_version = format!("{}:{}", crate_name, new_version);
 
-        success &= {
+        let cargo_semver_success = {
             let mut cmd = Command::new("./target/debug/cargo-semver");
             cmd.args(&["-S", &old_version, "-C", &new_version])
                 .env("RUST_BACKTRACE", "full")
@@ -105,7 +105,7 @@ mod full {
             cmd.status().expect("could not run cargo semver").success()
         };
 
-        assert!(success, "cargo semver");
+        assert_eq!(cargo_semver_success, cargo_result, "cargo semver");
 
         success &= awk_child
             .wait()
@@ -125,16 +125,16 @@ mod full {
     }
 
     macro_rules! full_test {
-        ($name:ident, $crate_name:expr, $old_version:expr, $new_version:expr) => {
+        ($name:ident, $crate_name:expr, $old_version:expr, $new_version:expr, $cargo_result:expr) => {
             #[test]
             fn $name() {
-                test_full($crate_name, $old_version, $new_version);
+                test_full($crate_name, $old_version, $new_version, $cargo_result);
             }
         };
     }
 
-    full_test!(log, "log", "0.3.4", "0.3.8");
-    full_test!(libc, "libc", "0.2.28", "0.2.31");
+    full_test!(log, "log", "0.3.4", "0.3.8", true);
+    full_test!(libc, "libc", "0.2.28", "0.2.31", true);
     // full_test!(mozjs, "mozjs", "0.2.0", "0.3.0");
     // full_test!(rand, "rand", "0.3.10", "0.3.16");
     // full_test!(serde_pre, "serde", "0.7.0", "1.0.0");
