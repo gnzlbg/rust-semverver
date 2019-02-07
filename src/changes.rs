@@ -896,7 +896,10 @@ impl<'tcx> ChangeSet<'tcx> {
                 version, self.max, new_version
             );
         } else {
-            println!("max change: {}, could not parse version \"{}\"", self.max, version);
+            println!(
+                "max change: {}, could not parse version \"{}\"",
+                self.max, version
+            );
         }
 
         for key in self.spans.values() {

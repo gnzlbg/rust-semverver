@@ -8,8 +8,12 @@ mod full {
 
     type CargoResult = Result<(), i32>;
 
-    fn test_full(crate_name: &str, old_version: &str, new_version: &str,
-                 cargo_result: CargoResult) {
+    fn test_full(
+        crate_name: &str,
+        old_version: &str,
+        new_version: &str,
+        cargo_result: CargoResult,
+    ) {
         let mut success = true;
 
         let prog = format!(
@@ -109,13 +113,18 @@ mod full {
         };
 
         if cargo_semver_exit_code.success() {
-            assert!(cargo_result.is_ok(),
-                    "cargo-semver succeeded but expected {:?}",
-                    cargo_result);
+            assert!(
+                cargo_result.is_ok(),
+                "cargo-semver succeeded but expected {:?}",
+                cargo_result
+            );
         } else if let Some(x) = cargo_semver_exit_code.code() {
-            assert!(cargo_result.is_err(),
-                    "cargo_result is Ok: {:?} but exit code is {}",
-                    cargo_result, x);
+            assert!(
+                cargo_result.is_err(),
+                "cargo_result is Ok: {:?} but exit code is {}",
+                cargo_result,
+                x
+            );
             assert_eq!(x, cargo_result.err().unwrap());
         } else {
             panic!("cargo semver did not return an exit code");
