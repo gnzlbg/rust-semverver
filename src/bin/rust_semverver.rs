@@ -82,9 +82,9 @@ fn main() {
                 exit(0);
             }
 
-                let mut orig_args: Vec<String> = env::args().collect();
+            let mut orig_args: Vec<String> = env::args().collect();
 
-                // Get the sysroot, looking from most specific to this invocation to the least:
+            // Get the sysroot, looking from most specific to this invocation to the least:
             // - command line
             // - runtime environment
             //    - SYSROOT
