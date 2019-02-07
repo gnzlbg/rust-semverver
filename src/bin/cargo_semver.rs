@@ -1,5 +1,4 @@
 #![feature(rustc_private)]
-#![feature(uniform_paths)]
 #![feature(set_stdio)]
 
 extern crate getopts;

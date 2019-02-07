@@ -6,7 +6,10 @@ mod full {
         process::{Command, Stdio},
     };
 
-    fn test_full(crate_name: &str, old_version: &str, new_version: &str, cargo_result: bool) {
+    type CargoResult = Result<(), i32>;
+
+    fn test_full(crate_name: &str, old_version: &str, new_version: &str,
+                 cargo_result: CargoResult) {
         let mut success = true;
 
         let prog = format!(
@@ -90,7 +93,7 @@ mod full {
         let old_version = format!("{}:{}", crate_name, old_version);
         let new_version = format!("{}:{}", crate_name, new_version);
 
-        let cargo_semver_success = {
+        let cargo_semver_exit_code = {
             let mut cmd = Command::new("./target/debug/cargo-semver");
             cmd.args(&["-S", &old_version, "-C", &new_version])
                 .env("RUST_BACKTRACE", "full")
@@ -102,10 +105,21 @@ mod full {
                 cmd.args(&["--target", &target]);
             }
 
-            cmd.status().expect("could not run cargo semver").success()
+            cmd.status().expect("could not run cargo semver")
         };
 
-        assert_eq!(cargo_semver_success, cargo_result, "cargo semver");
+        if cargo_semver_exit_code.success() {
+            assert!(cargo_result.is_ok(),
+                    "cargo-semver succeeded but expected {:?}",
+                    cargo_result);
+        } else if let Some(x) = cargo_semver_exit_code.code() {
+            assert!(cargo_result.is_err(),
+                    "cargo_result is Ok: {:?} but exit code is {}",
+                    cargo_result, x);
+            assert_eq!(x, cargo_result.err().unwrap());
+        } else {
+            panic!("cargo semver did not return an exit code");
+        }
 
         success &= awk_child
             .wait()
@@ -133,8 +147,8 @@ mod full {
         };
     }
 
-    full_test!(log, "log", "0.3.4", "0.3.8", true);
-    full_test!(libc, "libc", "0.2.28", "0.2.31", true);
+    full_test!(log, "log", "0.3.4", "0.3.8", Err(1));
+    full_test!(libc, "libc", "0.2.28", "0.2.31", Err(1));
     // full_test!(mozjs, "mozjs", "0.2.0", "0.3.0");
     // full_test!(rand, "rand", "0.3.10", "0.3.16");
     // full_test!(serde_pre, "serde", "0.7.0", "1.0.0");

@@ -34,7 +34,8 @@ fn main() {
 
     debug!("running rust-semverver compiler driver");
     exit(
-        rustc_driver::run(move || {
+        {
+            let r = rustc_driver::run(move || {
             use std::env;
 
             if std::env::args().any(|a| a == "--version" || a == "-V") {
@@ -140,6 +141,9 @@ fn main() {
             let args = args;
             rustc_driver::run_compiler(&args, Box::new(controller), None, None)
         }).try_into()
-            .expect("exit code too large"),
+                .expect("exit code too large");
+            eprintln!("r = {:?}", r);
+            r
+        }
     )
 }
